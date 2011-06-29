@@ -59,13 +59,6 @@ Shoes.app title: 'Zombie Dice v0.1' do
     show_dice @player.brains, BRAINS
     show_dice @player.runs, RUNS
     @check.hide
-    if @player.runs.length == 3
-      alert 'Oh, Three Footprints. SHAKE&TAKE again.'
-      @player.runs.each{|d| d.img.hide}
-      @player.runs = []
-      @take.show
-      return
-    end
     @player.bangs.length > 2 ? GUNNED.show : [@ss, @kg].show
   end
 
@@ -118,7 +111,11 @@ Shoes.app title: 'Zombie Dice v0.1' do
   @roll = button("ROLL"){roll}.place
   @check = button('CHECK'){check}.place
   @ss = button('Stop and Score'){turn_next_player}.place 330
-  @kg = button('Keep Going'){[@ss, @kg].hide; show_dice @player.runs, TAKES, :vertical; @take.show}.place
+  @kg = button('Keep Going'){
+    [@ss, @kg].hide
+    show_dice @player.runs, TAKES, :vertical
+    @player.runs.length < 3 ? @take.show : @roll.show
+  }.place
 
   GUNNED << rect(100, 120, 400, 300, curve: 20, fill: rgb(183, 0, 0, 0.7))
   GUNNED << para('You got', left: 150, top: 170)
