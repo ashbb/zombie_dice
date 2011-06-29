@@ -113,8 +113,9 @@ Shoes.app title: 'Zombie Dice v0.2' do
   end
 
   background dimgray
+  background './zonbiemann1.png'
   nostroke
-  @hand = rect TAKES[0]-10, TAKES[1]-10, 220, 250, curve: 10, fill: gray, hidden: true
+  @hand = rect TAKES[0]-10, TAKES[1]-10, 220, 250, curve: 10, fill: black.push(0.4), hidden: true
   @players = %w[ashbb April].map{|name| Player.new name, 0, [], [], []}
   @player = @players.first
   @score = para make_score @player.name
@@ -143,7 +144,7 @@ Shoes.app title: 'Zombie Dice v0.2' do
   GUNNED << para('You got', left: 150, top: 170)
   GUNNED << title('SHOT GUNNED!', left: 150, top: 220)
   GUNNED << button("next player's turn"){
-    @player.brains = []
+    @player.brains, @note_n = [], 0
     GUNNED.hide
     turn_next_player
   }
