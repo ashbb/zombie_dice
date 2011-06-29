@@ -19,6 +19,14 @@ class Die
     img.hide
     self.img, self.side = imgs[rand 6]
   end
+  
+  def hide
+    img.hide
+  end
+  
+  def show
+    img.show
+  end
 end
 
 class Shoes
@@ -29,9 +37,18 @@ class Shoes
   end
 end
 
-Shoes.app title: 'Zombie Dice v0.1' do
+Shoes.app title: 'Zombie Dice v0.2' do
   def take
-    (3 - @player.runs.length).times{@player.runs << @dice.pop}
+    (3 - @player.runs.length).times do
+      if @dice.empty?
+        @note.text = "Note: You got #{@note_n += @player.brains.length} brains already."
+        alert 'No dice left in the cup. So, made a note. Now put all brains in the cup and continue.'
+        @player.brains.hide
+        @dice, @player.brains = @player.brains, []
+        @dice = @dice.sort_by{rand}
+      end
+      @player.runs << @dice.pop
+    end
     show_dice @player.runs, TAKES, :vertical
     @take.hide
     @roll.show
@@ -65,7 +82,7 @@ Shoes.app title: 'Zombie Dice v0.1' do
   def show_dice dice, area, flag = nil
     dice.each_with_index do |d, i|
       i, j = flag ? [0, i] : [i%3, i/3]
-      d.img.show.move area[0] + i * 55, area[1] + j * 55
+      d.show.move area[0] + i * 55, area[1] + j * 55
     end
   end
 
@@ -77,11 +94,13 @@ Shoes.app title: 'Zombie Dice v0.1' do
   end
 
   def turn_next_player first = nil
+    @player.score += @player.brains.length + @note_n
+    @note.text = ''; @note_n = 0
     @dice = DICE.sort_by{rand}
-    (@player = @players[0]; return) if first
-    DICE.each{|d| d.img.hide}
+    return if first
+    DICE.hide
     [@ss, @kg, @hand].hide
-    @player.score += @player.brains.length
+
     if @player.score > 12
       @score.text = make_score @player.name
       WIN.show
@@ -97,7 +116,8 @@ Shoes.app title: 'Zombie Dice v0.1' do
   nostroke
   @hand = rect TAKES[0]-10, TAKES[1]-10, 220, 250, curve: 10, fill: gray, hidden: true
   @players = %w[ashbb April].map{|name| Player.new name, 0, [], [], []}
-  @score = para make_score @players.first.name
+  @player = @players.first
+  @score = para make_score @player.name
 
   [RED, YELLOW, GREEN].each do |sides, color, n|
     n.times do
@@ -107,6 +127,8 @@ Shoes.app title: 'Zombie Dice v0.1' do
     end
   end
 
+  @note = para '', left: BRAINS[0], top: BRAINS[1]-25
+  @note_n = 0
   @take = button("SHAKE & TAKE"){take}.place
   @roll = button("ROLL"){roll}.place
   @check = button('CHECK'){check}.place
@@ -134,8 +156,7 @@ Shoes.app title: 'Zombie Dice v0.1' do
   WIN.last.move(400, 350).style width: 50
   WIN << button('Start Over'){
     @players.each{|p| p.score, p.bangs, p.brains, p.runs = 0, [], [], []}
-    WIN.hide
-    DICE.each{|d| d.img.hide}
+    [WIN, DICE].hide
     turn_next_player
   }
   WIN.last.move(150, 350).style width: 150
